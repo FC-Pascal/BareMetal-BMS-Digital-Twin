@@ -38,8 +38,8 @@ The Kalman Filter was initialized with a deliberately inaccurate SoC guess to pr
 ![EKF SoC Convergence](docs/ekf_soc_convergence.png)
 
 ### Bridging the Gap: MATLAB to C
-To test the C-implementation against the exact same physics, the simulated current and voltage vectors were exported directly from the MATLAB workspace into a C header file (`synthetic_bms_data.h`) using `const float` arrays.
-![C Header Data Export](docs/c_header_data_export.jpg)
+To test the C-implementation against the exact same physics, the simulated current and voltage vectors were exported directly from the MATLAB workspace into a dedicated C header file named `synthetic_bms_data.h`[cite: 21]. The data points (such as the 1001-element `I_MEASURED` array) were declared as `const float` arrays to ensure they could be properly allocated in the embedded system's memory[cite: 21].
+![C Header Data Export](docs/c_header_data_export.png)
 
 ---
 
@@ -49,13 +49,13 @@ The continuous-time algorithm was translated into deterministic, fixed-step Embe
 
 ### Advanced Memory Mapping & Compilation
 The compiler was directed via a custom Scatter File (`.sct`) to explicitly define the 512KB Flash and 96KB SRAM boundaries. This isolated the massive synthetic sensor arrays into Read-Only Flash while carving out a protected 4KB stack boundary, preventing IEEE-754 floating-point data from overwriting processor registers. The project compiles cleanly without reliance on MicroLIB or an RTOS.
-![Keil Bare Metal Build](docs/keil_bare_metal_build.jpg)
+![Keil Bare Metal Build](docs/keil_bare_metal_build.png)
 
 ### Hardware-Level FPU Unlocking & Digital Twin Execution
 A custom bare-metal bootloader (`startup.c`) was engineered to directly interface with the Cortex-M4 System Control Block (`SCB_CPACR`), manually powering on the hardware Floating-Point Unit (FPU). This allows the continuous-time math to execute natively on silicon.
 
 Executing via the Keil ARM instruction simulator, the Watch Window proves successful matrix math execution. The local structural memory tracks the `SoC` recalculating from the initial 80.0% guess up to the converged **99.11%** state.
-![Hardware Debugger SoC Convergence](docs/docskeil_hardware_debugger_soc.jpg)
+![Hardware Debugger SoC Convergence](docs/docskeil_hardware_debugger_soc.png)
 
 ---
 
@@ -63,20 +63,20 @@ Executing via the Keil ARM instruction simulator, the Watch Window proves succes
 
 The repository is logically separated into mathematical modeling, core C logic, and target-specific compiler environments:
 
-* **`matlab_bms_model/`**: Contains the MATLAB scripts used to simulate the battery physics and generate the synthetic current/voltage datasets[cite: 20].
-* **`c_dekf_core/`**: The hardware-agnostic C implementation and bare-metal boot sequence[cite: 20].
-  * `dekf_core.c` & `dekf_core.h`: The pure C implementation of the Kalman Filter[cite: 21].
-  * `synthetic_bms_data.h`: The synthetic sensor data exported from MATLAB as `static const` arrays[cite: 21].
-  * `main.c`: The main execution loop processing the data through the EKF[cite: 21].
-  * `startup.c`: The custom Cortex-M4 bootloader mapping the vector table and initializing the FPU[cite: 21].
-  * `stm32f401re.sct`: The custom linker scatter file defining Flash/SRAM boundaries[cite: 21].
-* **`keil_arm_target/`**: The Keil uVision 5 project directory containing the `BMS_Digital_Twin.uvprojx` configuration, object files, and ARM Compiler 6 layout[cite: 20, 22].
-* **`docs/`**: Documentation assets and execution proof images[cite: 20].
+* **`matlab_bms_model/`**: Contains the MATLAB scripts used to simulate the battery physics and generate the synthetic current/voltage datasets.
+* **`c_dekf_core/`**: The hardware-agnostic C implementation and bare-metal boot sequence.
+  * `dekf_core.c` & `dekf_core.h`: The pure C implementation of the Kalman Filter.
+  * `synthetic_bms_data.h`: The synthetic sensor data exported from MATLAB as `static const` arrays.
+  * `main.c`: The main execution loop processing the data through the EKF.
+  * `startup.c`: The custom Cortex-M4 bootloader mapping the vector table and initializing the FPU.
+  * `stm32f401re.sct`: The custom linker scatter file defining Flash/SRAM boundaries.
+* **`keil_arm_target/`**: The Keil uVision 5 project directory containing the `BMS_Digital_Twin.uvprojx` configuration, object files, and ARM Compiler 6 layout.
+* **`docs/`**: Documentation assets and execution proof images.
 
 ---
 
 ## ⚙️ How to Build and Run
-1. Clone this repository and open `keil_arm_target/BMS_Digital_Twin.uvprojx` in Keil uVision 5[cite: 22].
+1. Clone this repository and open `keil_arm_target/BMS_Digital_Twin.uvprojx` in Keil uVision 5.
 2. Ensure **ARM Compiler 6** is selected in the Target Options.
 3. In Linker options, verify `--datacompressor=off` is active and the custom `../c_dekf_core/stm32f401re.sct` file is linked.
 4. Press `F7` to build the target.
