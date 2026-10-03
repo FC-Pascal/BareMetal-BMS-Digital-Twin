@@ -1,0 +1,8 @@
+--cpu=Cortex-M4.fp.sp
+".\objects\dekf_core.o"
+".\objects\main.o"
+".\objects\startup.o"
+--strict --scatter "..\c_dekf_core\stm32f401re.sct"
+--datacompressor=off --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list ".\Listings\BMS_Digital_Twin.map" -o .\Objects\BMS_Digital_Twin.axf
